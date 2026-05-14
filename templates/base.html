@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Travel Destination Recommendation System - Discover personalized travel destinations across India">
+  <title>{% block title %}TravelSmart{% endblock %} | Travel Recommendation System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  {% include 'components/navbar.html' %}
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-messages">
+    {% for category, message in messages %}
+    <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  {% if error_404 %}
+  <div class="auth-container">
+    <div class="glass auth-card text-center">
+      <div style="font-size:4rem;margin-bottom:16px">🗺️</div>
+      <h2>Page Not Found</h2>
+      <p class="subtitle">The destination you're looking for doesn't exist.</p>
+      <a href="{{ url_for('index') }}" class="btn btn-primary btn-block">Back to Home</a>
+    </div>
+  </div>
+  {% elif error_500 %}
+  <div class="auth-container">
+    <div class="glass auth-card text-center">
+      <div style="font-size:4rem;margin-bottom:16px">⚠️</div>
+      <h2>Server Error</h2>
+      <p class="subtitle">Something went wrong. Please try again later.</p>
+      <a href="{{ url_for('index') }}" class="btn btn-primary btn-block">Back to Home</a>
+    </div>
+  </div>
+  {% else %}
+  <main>{% block content %}{% endblock %}</main>
+  {% endif %}
+
+  {% include 'components/footer.html' %}
+
+  <!-- Chatbot Widget -->
+  <button class="chatbot-btn" id="chatbotToggle" title="Chat with TravelBot">🤖</button>
+  <div class="chatbot-panel" id="chatbotPanel">
+    <div class="chatbot-header">
+      <h4>🤖 TravelSmart Bot</h4>
+      <button class="chatbot-close" id="chatbotClose">✕</button>
+    </div>
+    <div class="chatbot-messages" id="chatMessages">
+      <div class="chat-msg bot">👋 Hi! I'm TravelSmart Bot. Ask me about destinations!<br><br>Try: "beach under ₹15,000" or "adventure destinations"</div>
+    </div>
+    <div class="chatbot-input">
+      <input type="text" id="chatInput" placeholder="Ask about destinations..." autocomplete="off">
+      <button id="chatSend">➤</button>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

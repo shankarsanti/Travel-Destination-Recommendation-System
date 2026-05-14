@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+  <div class="container">
+    <h1 class="fade-up">Discover Your Perfect<br><span class="gradient-text">Travel Destination</span></h1>
+    <p class="fade-up fade-up-delay-1">Smart recommendations powered by your preferences. Explore India's most stunning destinations with personalized suggestions for budget, season, and travel style.</p>
+    <div class="flex gap-2 justify-center fade-up fade-up-delay-2">
+      <a href="{{ url_for('recommend') }}" class="btn btn-primary btn-lg">🎯 Get Recommendations</a>
+      <a href="{{ url_for('explore') }}" class="btn btn-outline btn-lg">🗺️ Explore All</a>
+    </div>
+    <div class="hero-stats fade-up fade-up-delay-3">
+      <div class="stat"><h3>{{ total }}+</h3><p>Destinations</p></div>
+      <div class="stat"><h3>8</h3><p>Travel Types</p></div>
+      <div class="stat"><h3>4</h3><p>Seasons Covered</p></div>
+      <div class="stat"><h3>100%</h3><p>Personalized</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Trending Destinations -->
+<section class="section">
+  <div class="container">
+    <h2 class="section-title text-center">🔥 Trending Destinations</h2>
+    <p class="section-subtitle text-center">Top-rated places loved by travelers</p>
+    <div class="card-grid">
+      {% for dest in trending %}
+      <div class="dest-card animate-on-scroll">
+        <div class="card-img">
+          {% if dest.image_url and dest.image_url.startswith('http') %}<img src="{{ dest.image_url }}" alt="{{ dest.name }}" loading="lazy">{% else %}<img src="{{ url_for('static', filename='images/' + (dest.image_url or 'default_dest.jpg')) }}" alt="{{ dest.name }}" loading="lazy">{% endif %}
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">{{ dest.name }}</h3>
+          <p class="card-location"><i>📍</i> {{ dest.state }}, {{ dest.country }}</p>
+          <div class="card-meta">
+            <span class="tag">{{ dest.travel_type | replace('_', ' ') | title }}</span>
+            <span class="tag tag-{{ dest.budget_category }}">{{ dest.budget_category | title }}</span>
+            <span class="tag tag-accent">{{ dest.best_season | title }}</span>
+          </div>
+          <div class="card-footer">
+            <div>
+              <span class="stars">{% for i in range(dest.rating | int) %}⭐{% endfor %}</span>
+              <span style="font-size:0.85rem;color:var(--text-secondary);margin-left:4px">{{ dest.rating }}</span>
+            </div>
+            <span class="price">₹{{ "{:,}".format(dest.cost_estimate) }}</span>
+          </div>
+          <a href="{{ url_for('destination_detail', dest_id=dest.id) }}" class="btn btn-primary btn-block btn-sm mt-2">View Details →</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-4">
+      <a href="{{ url_for('explore') }}" class="btn btn-outline btn-lg">View All Destinations →</a>
+    </div>
+  </div>
+</section>
+
+<!-- AI-Powered Recommendations (for logged-in users) -->
+{% if ai_recommendations %}
+<section class="section" style="background:linear-gradient(135deg, rgba(108,99,255,0.05), rgba(0,206,209,0.05));">
+  <div class="container">
+    <h2 class="section-title text-center">🤖 Recommended For You</h2>
+    <p class="section-subtitle text-center">Based on your browsing history — <em>Users similar to you also loved these</em></p>
+    {% if travel_profile %}
+    <div class="glass" style="padding:16px 24px;margin-bottom:28px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;justify-content:center;">
+      <span style="font-size:0.85rem;color:var(--text-secondary);">🧠 Your Travel Profile:</span>
+      {% if travel_profile.top_type %}<span class="tag">{{ travel_profile.top_type | replace('_',' ') | title }} lover</span>{% endif %}
+      {% if travel_profile.top_budget %}<span class="tag tag-{{ travel_profile.top_budget }}">{{ travel_profile.top_budget | title }} traveler</span>{% endif %}
+      {% if travel_profile.top_season %}<span class="tag tag-accent">{{ travel_profile.top_season | title }} explorer</span>{% endif %}
+      <span style="font-size:0.8rem;color:var(--text-secondary);">📊 {{ travel_profile.total_interactions }} interactions analyzed</span>
+    </div>
+    {% endif %}
+    <div class="card-grid">
+      {% for dest in ai_recommendations %}
+      <div class="dest-card animate-on-scroll">
+        <div class="card-img">
+          {% if dest.image_url and dest.image_url.startswith('http') %}<img src="{{ dest.image_url }}" alt="{{ dest.name }}" loading="lazy">{% else %}<img src="{{ url_for('static', filename='images/' + (dest.image_url or 'default_dest.jpg')) }}" alt="{{ dest.name }}" loading="lazy">{% endif %}
+          <div style="position:absolute;top:12px;left:12px">
+            <span class="tag" style="background:rgba(108,99,255,0.9);color:#fff;padding:4px 10px;font-size:0.75rem;">🤖 AI Pick</span>
+          </div>
+          <div style="position:absolute;top:12px;right:12px">
+            <span class="tag tag-accent" style="padding:4px 10px;font-size:0.8rem;">{{ dest.match_percentage }}% Match</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">{{ dest.name }}</h3>
+          <p class="card-location"><i>📍</i> {{ dest.state }}, {{ dest.country }}</p>
+          <div class="card-meta">
+            <span class="tag">{{ dest.travel_type | replace('_', ' ') | title }}</span>
+            <span class="tag tag-{{ dest.budget_category }}">{{ dest.budget_category | title }}</span>
+          </div>
+          <p style="font-size:0.78rem;color:var(--secondary);margin-top:6px;">
+            👥 {{ dest.similar_user_count }} similar user{{ 's' if dest.similar_user_count != 1 }} recommended this
+          </p>
+          <div class="card-footer">
+            <span class="stars">{% for i in range(dest.rating | int) %}⭐{% endfor %} {{ dest.rating }}</span>
+            <span class="price">₹{{ "{:,}".format(dest.cost_estimate) }}</span>
+          </div>
+          <a href="{{ url_for('destination_detail', dest_id=dest.id) }}" class="btn btn-primary btn-block btn-sm mt-2">View Details →</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- How It Works -->
+<section class="section" style="background:var(--bg-glass)">
+  <div class="container">
+    <h2 class="section-title text-center">✨ How It Works</h2>
+    <p class="section-subtitle text-center">Three simple steps to your dream vacation</p>
+    <div class="card-grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr))">
+      <div class="glass text-center" style="padding:40px 24px">
+        <div style="font-size:3rem;margin-bottom:16px">🎯</div>
+        <h3 style="margin-bottom:8px">Set Preferences</h3>
+        <p class="text-muted">Choose your budget, travel type, season, and duration</p>
+      </div>
+      <div class="glass text-center" style="padding:40px 24px">
+        <div style="font-size:3rem;margin-bottom:16px">🤖</div>
+        <h3 style="margin-bottom:8px">Smart Matching</h3>
+        <p class="text-muted">Our algorithm finds the best destinations for you</p>
+      </div>
+      <div class="glass text-center" style="padding:40px 24px">
+        <div style="font-size:3rem;margin-bottom:16px">✈️</div>
+        <h3 style="margin-bottom:8px">Plan & Travel</h3>
+        <p class="text-muted">Save favorites, plan itineraries, and start your journey</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact Section -->
+<section class="contact-section" id="contact">
+  <div class="container">
+    <h2 class="section-title text-center">📬 Contact Us</h2>
+    <p class="section-subtitle text-center">Have a question? We'd love to hear from you</p>
+    <div class="contact-grid">
+      <div class="contact-info">
+        <div class="info-item"><div class="icon-box">📧</div><div><h4>Email</h4><p class="text-muted">shankarsanti2005@gmail.com</p></div></div>
+        <div class="info-item"><div class="icon-box">📞</div><div><h4>Phone</h4><p class="text-muted">9035123514</p></div></div>
+        <div class="info-item"><div class="icon-box">📍</div><div><h4>Location</h4><p class="text-muted">Athani, Karnataka, India</p></div></div>
+      </div>
+      <form action="{{ url_for('contact') }}" method="POST" class="glass" style="padding:30px">
+        <div class="form-group"><label>Name</label><input type="text" name="name" class="form-control" required></div>
+        <div class="form-group"><label>Email</label><input type="email" name="email" class="form-control" required></div>
+        <div class="form-group"><label>Subject</label><input type="text" name="subject" class="form-control"></div>
+        <div class="form-group"><label>Message</label><textarea name="message" class="form-control" rows="4" required></textarea></div>
+        <button type="submit" class="btn btn-primary btn-block">Send Message</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,40 @@
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4>🌍 Travel Destination</h4>
+        <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.7">
+          Discover amazing destinations tailored to your preferences. Explore India's diverse travel experiences with intelligent recommendations.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="{{ url_for('index') }}">Home</a></li>
+          <li><a href="{{ url_for('explore') }}">Explore</a></li>
+          <li><a href="{{ url_for('recommend') }}">Get Recommendations</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Travel Types</h4>
+        <ul>
+          <li><a href="{{ url_for('explore', type='beach') }}">Beach</a></li>
+          <li><a href="{{ url_for('explore', type='adventure') }}">Adventure</a></li>
+          <li><a href="{{ url_for('explore', type='historical') }}">Historical</a></li>
+          <li><a href="{{ url_for('explore', type='nature') }}">Nature</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact Us</h4>
+        <ul>
+          <li>📧 shankarsanti2005@gmail.com</li>
+          <li>📞 9035123514</li>
+          <li>📍 Athani, Karnataka</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Travel Destination — Travel Destination Recommendation System. All rights reserved.</p>
+    </div>
+  </div>
+</footer>

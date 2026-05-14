@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}My Dashboard{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>📊 My Dashboard</h1>
+  <p>Welcome back, {{ user.full_name or user.username }}! Here's your travel overview</p>
+</div>
+<div class="container">
+  <!-- Stats Cards -->
+  <div class="admin-stats mb-4">
+    <div class="glass stat-card"><div class="stat-icon">❤️</div><div class="stat-number">{{ stats.wishlist }}</div><div class="stat-label">Saved Places</div></div>
+    <div class="glass stat-card"><div class="stat-icon">💬</div><div class="stat-number">{{ stats.reviews }}</div><div class="stat-label">Reviews</div></div>
+    <div class="glass stat-card"><div class="stat-icon">📋</div><div class="stat-number">{{ stats.trips }}</div><div class="stat-label">Trips Planned</div></div>
+    <div class="glass stat-card"><div class="stat-icon">👁️</div><div class="stat-number">{{ stats.views }}</div><div class="stat-label">Destinations Viewed</div></div>
+  </div>
+
+  <!-- Travel Profile -->
+  {% if travel_profile %}
+  <div class="glass detail-section mb-4">
+    <h3>🧠 Your Travel Profile</h3>
+    <div class="flex gap-3 flex-wrap items-center">
+      {% if travel_profile.top_type %}<span class="tag" style="font-size:0.9rem;padding:8px 16px">{{ travel_profile.top_type | replace('_',' ') | title }} Lover</span>{% endif %}
+      {% if travel_profile.top_budget %}<span class="tag tag-{{ travel_profile.top_budget }}" style="font-size:0.9rem;padding:8px 16px">{{ travel_profile.top_budget | title }} Traveler</span>{% endif %}
+      {% if travel_profile.top_season %}<span class="tag tag-accent" style="font-size:0.9rem;padding:8px 16px">{{ travel_profile.top_season | title }} Explorer</span>{% endif %}
+      <span class="text-muted" style="font-size:0.85rem">📊 Based on {{ travel_profile.total_interactions }} interactions</span>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="detail-grid">
+    <div>
+      <!-- Saved Destinations -->
+      <div class="glass detail-section">
+        <div class="flex justify-between items-center mb-3">
+          <h3 style="margin:0">❤️ Saved Destinations</h3>
+          <a href="{{ url_for('wishlist') }}" class="btn btn-outline btn-sm">View All</a>
+        </div>
+        {% if saved %}
+        <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">
+          {% for item in saved %}
+          <div class="dest-card" style="margin-bottom:0">
+            <div class="card-img" style="height:120px">{% if item.image_url and item.image_url.startswith('http') %}<img src="{{ item.image_url }}" alt="{{ item.name }}" loading="lazy">{% else %}<img src="{{ url_for('static', filename='images/' + (item.image_url or 'default_dest.jpg')) }}" alt="{{ item.name }}" loading="lazy">{% endif %}</div>
+            <div class="card-body" style="padding:12px">
+              <h3 class="card-title" style="font-size:1rem">{{ item.name }}</h3>
+              <p class="card-location" style="font-size:0.8rem">📍 {{ item.state }}</p>
+              <a href="{{ url_for('destination_detail', dest_id=item.id) }}" class="btn btn-primary btn-sm btn-block">View →</a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">No saved destinations yet. <a href="{{ url_for('explore') }}">Start exploring!</a></p>
+        {% endif %}
+      </div>
+
+      <!-- AI Recommendations -->
+      {% if ai_recs %}
+      <div class="glass detail-section mt-3">
+        <h3>🤖 Recommended For You</h3>
+        <p class="text-muted mb-3" style="font-size:0.82rem">Based on your activity — users similar to you loved these</p>
+        <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">
+          {% for dest in ai_recs %}
+          <div class="dest-card" style="margin-bottom:0">
+            <div class="card-img" style="height:120px">
+              {% if dest.image_url and dest.image_url.startswith('http') %}<img src="{{ dest.image_url }}" alt="{{ dest.name }}" loading="lazy">{% else %}<img src="{{ url_for('static', filename='images/' + (dest.image_url or 'default_dest.jpg')) }}" alt="{{ dest.name }}" loading="lazy">{% endif %}
+              <div style="position:absolute;top:8px;right:8px"><span class="tag tag-accent" style="font-size:0.7rem;padding:3px 8px">{{ dest.match_percentage }}% match</span></div>
+            </div>
+            <div class="card-body" style="padding:12px">
+              <h3 class="card-title" style="font-size:1rem">{{ dest.name }}</h3>
+              <div class="card-footer" style="padding-top:8px"><span class="stars" style="font-size:0.8rem">⭐ {{ dest.rating }}</span><span class="price" style="font-size:0.9rem">₹{{ "{:,}".format(dest.cost_estimate) }}</span></div>
+              <a href="{{ url_for('destination_detail', dest_id=dest.id) }}" class="btn btn-primary btn-sm btn-block mt-1">View →</a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div>
+      <!-- Notifications -->
+      <div class="glass detail-section">
+        <h3>🔔 Notifications</h3>
+        {% if notifs %}
+        {% for n in notifs %}
+        <div style="padding:10px 0;border-bottom:1px solid var(--border-glass)">
+          <div class="flex items-center gap-2">
+            <span style="font-size:1.2rem">{% if n.notif_type == 'weather' %}🌦️{% elif n.notif_type == 'deal' %}💰{% elif n.notif_type == 'new' %}🆕{% else %}🔔{% endif %}</span>
+            <div>
+              <strong style="font-size:0.85rem">{{ n.title }}</strong>
+              <p class="text-muted" style="font-size:0.8rem;margin:0">{{ n.message }}</p>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="text-muted" style="font-size:0.85rem">No new notifications</p>
+        {% endif %}
+      </div>
+
+      <!-- Recent Searches -->
+      <div class="glass detail-section mt-3">
+        <h3>🔍 Recent Searches</h3>
+        {% if searches %}
+        {% for s in searches %}
+        <div style="padding:6px 0;border-bottom:1px solid var(--border-glass)">
+          <a href="{{ url_for('explore', search=s.query) }}" style="font-size:0.85rem">🔎 {{ s.query }}</a>
+          <span class="text-muted" style="font-size:0.7rem;float:right">{{ s.created_at[:10] }}</span>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="text-muted" style="font-size:0.85rem">No search history yet</p>
+        {% endif %}
+      </div>
+
+      <!-- My Reviews -->
+      <div class="glass detail-section mt-3">
+        <h3>💬 My Reviews</h3>
+        {% for r in reviews %}
+        <div style="padding:8px 0;border-bottom:1px solid var(--border-glass)">
+          <div class="flex justify-between"><strong style="font-size:0.85rem">{{ r.dest_name }}</strong><span class="stars" style="font-size:0.75rem">{% for i in range(r.rating) %}⭐{% endfor %}</span></div>
+          {% if r.comment %}<p class="text-muted" style="font-size:0.8rem;margin:2px 0 0">{{ r.comment[:60] }}{{ '...' if r.comment|length > 60 }}</p>{% endif %}
+        </div>
+        {% endfor %}
+        {% if not reviews %}<p class="text-muted" style="font-size:0.85rem">No reviews yet</p>{% endif %}
+      </div>
+
+      <!-- Quick Links -->
+      <div class="glass detail-section mt-3">
+        <h3>🔗 Quick Actions</h3>
+        <a href="{{ url_for('explore') }}" class="btn btn-primary btn-block btn-sm mb-2">🗺️ Explore Destinations</a>
+        <a href="{{ url_for('recommend') }}" class="btn btn-outline btn-block btn-sm mb-2">🎯 Get Recommendations</a>
+        <a href="{{ url_for('itinerary') }}" class="btn btn-outline btn-block btn-sm mb-2">📋 My Itineraries</a>
+        <a href="{{ url_for('profile') }}" class="btn btn-outline btn-block btn-sm">👤 Edit Profile</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

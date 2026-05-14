@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Get Recommendations{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>🎯 Smart Recommendations</h1>
+  <p>Tell us your preferences and we'll find the perfect destinations for you</p>
+</div>
+
+<div class="container">
+  <form class="glass recommend-form" method="POST">
+    <div class="form-row">
+      <div class="form-group">
+        <label>🧳 Travel Type</label>
+        <select name="travel_type" class="form-control">
+          <option value="">Any Type</option>
+          {% for t in ['beach','adventure','historical','nature','cultural','wildlife','pilgrimage','hill_station'] %}
+          <option value="{{ t }}">{{ t | replace('_',' ') | title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>💰 Budget Category</label>
+        <select name="budget" class="form-control">
+          <option value="">Any Budget</option>
+          <option value="budget">Budget (Under ₹8,000)</option>
+          <option value="moderate">Moderate (₹8,000-₹20,000)</option>
+          <option value="luxury">Luxury (₹20,000+)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>🌤️ Preferred Season</label>
+        <select name="season" class="form-control">
+          <option value="">Any Season</option>
+          {% for s in ['summer','winter','monsoon','spring'] %}
+          <option value="{{ s }}">{{ s | title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>📅 Duration (Days)</label>
+        <select name="duration" class="form-control">
+          <option value="">Any Duration</option>
+          <option value="3">Short (1-3 Days)</option>
+          <option value="5">Medium (4-6 Days)</option>
+          <option value="8">Long (7+ Days)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>💵 Maximum Budget (₹)</label>
+      <input type="number" name="max_cost" class="form-control" placeholder="e.g. 15000 (optional)">
+    </div>
+    <button type="submit" class="btn btn-primary btn-block btn-lg">🔍 Find My Destinations</button>
+  </form>
+
+  <!-- Results -->
+  {% if recommendations is not none %}
+  <div class="recommend-results">
+    <h2 class="section-title">📍 {{ recommendations | length }} Match{{ 'es' if recommendations | length != 1 }} Found</h2>
+    {% if recommendations %}
+    <div class="card-grid">
+      {% for dest in recommendations %}
+      <div class="dest-card">
+        <div class="card-img">
+          {% if dest.image_url and dest.image_url.startswith('http') %}<img src="{{ dest.image_url }}" alt="{{ dest.name }}" loading="lazy">{% else %}<img src="{{ url_for('static', filename='images/' + (dest.image_url or 'default_dest.jpg')) }}" alt="{{ dest.name }}" loading="lazy">{% endif %}
+          <div style="position:absolute;top:12px;right:12px">
+            <span class="tag tag-accent" style="font-size:0.9rem;padding:6px 14px">{{ dest.match_percentage }}% Match</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">{{ dest.name }}</h3>
+          <p class="card-location"><i>📍</i> {{ dest.state }}</p>
+          <div class="card-meta">
+            <span class="tag">{{ dest.travel_type | replace('_',' ') | title }}</span>
+            <span class="tag tag-{{ dest.budget_category }}">{{ dest.budget_category | title }}</span>
+          </div>
+          <div class="match-bar"><div class="match-fill" style="width:{{ dest.match_percentage }}%"></div></div>
+          <div class="card-footer mt-2">
+            <span class="match-score">{{ dest.match_percentage }}% match</span>
+            <span class="price">₹{{ "{:,}".format(dest.cost_estimate) }}</span>
+          </div>
+          <a href="{{ url_for('destination_detail', dest_id=dest.id) }}" class="btn btn-primary btn-block btn-sm mt-2">View Details →</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="icon">🤷</div>
+      <h3>No matches found</h3>
+      <p>Try broadening your preferences</p>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

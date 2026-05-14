@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="page-header"><h1>📊 Admin Dashboard</h1><p>System overview and analytics</p></div>
+<div class="container">
+  <!-- Stats Cards -->
+  <div class="admin-stats">
+    <div class="glass stat-card"><div class="stat-icon">🏞️</div><div class="stat-number">{{ stats.total_destinations }}</div><div class="stat-label">Destinations</div></div>
+    <div class="glass stat-card"><div class="stat-icon">👥</div><div class="stat-number">{{ stats.total_users }}</div><div class="stat-label">Users</div></div>
+    <div class="glass stat-card"><div class="stat-icon">💬</div><div class="stat-number">{{ stats.total_reviews }}</div><div class="stat-label">Reviews</div></div>
+    <div class="glass stat-card"><div class="stat-icon">❤️</div><div class="stat-number">{{ stats.total_wishlists }}</div><div class="stat-label">Wishlists</div></div>
+    <div class="glass stat-card"><div class="stat-icon">📧</div><div class="stat-number">{{ stats.messages }}</div><div class="stat-label">Unread Messages</div></div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="flex gap-2 flex-wrap mb-4">
+    <a href="{{ url_for('admin_destinations') }}" class="btn btn-primary">🏞️ Manage Destinations</a>
+    <a href="{{ url_for('admin_users') }}" class="btn btn-outline">👥 Manage Users</a>
+    <a href="{{ url_for('admin_messages') }}" class="btn btn-outline">📧 Messages {{ '(' + stats.messages|string + ')' if stats.messages }}</a>
+    <a href="{{ url_for('admin_add_destination') }}" class="btn btn-accent">➕ Add Destination</a>
+  </div>
+
+  <div class="detail-grid">
+    <!-- Type Distribution -->
+    <div class="glass detail-section">
+      <h3>📈 Destination Types</h3>
+      {% for t in type_dist %}
+      <div class="budget-bar mb-2">
+        <span class="label">{{ t.travel_type | replace('_',' ') | title }}</span>
+        <div class="bar"><div class="bar-fill" style="width:{{ (t.count / stats.total_destinations * 100) | int }}%"></div></div>
+        <span class="amount">{{ t.count }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Recent Activity -->
+    <div>
+      <div class="glass detail-section">
+        <h3>💬 Recent Reviews</h3>
+        {% for r in recent_reviews %}
+        <div style="padding:10px 0;border-bottom:1px solid var(--border-glass)">
+          <div class="flex justify-between"><strong>{{ r.username }}</strong><span class="stars">{% for i in range(r.rating) %}⭐{% endfor %}</span></div>
+          <span class="text-muted" style="font-size:0.8rem">on {{ r.dest_name }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="glass detail-section mt-3">
+        <h3>👤 Recent Users</h3>
+        {% for u in recent_users %}
+        <div style="padding:8px 0;border-bottom:1px solid var(--border-glass)">
+          <strong>{{ u.username }}</strong> <span class="text-muted" style="font-size:0.8rem">— {{ u.email }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

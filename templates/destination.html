@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{% block title %}{{ dest.name }}{% endblock %}
+{% block content %}
+<div class="detail-hero">
+  <div class="container">
+    <a href="{{ url_for('explore') }}" class="btn btn-outline btn-sm mb-3">← Back to Explore</a>
+    <h1>{{ dest.name }}</h1>
+    <p class="text-muted" style="font-size:1.1rem">📍 {{ dest.state }}, {{ dest.country }}</p>
+    <div class="flex gap-2 mt-2 flex-wrap">
+      <span class="tag">{{ dest.travel_type | replace('_',' ') | title }}</span>
+      <span class="tag tag-{{ dest.budget_category }}">{{ dest.budget_category | title }}</span>
+      <span class="tag tag-accent">Best: {{ dest.best_season | title }}</span>
+      <span class="tag">{{ dest.duration_days }} Days</span>
+      <span class="stars" style="margin-left:8px">{% for i in range(dest.rating | int) %}⭐{% endfor %} {{ dest.rating }}/5</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="detail-grid">
+    <!-- Left Column -->
+    <div>
+      <!-- Image Gallery -->
+      <div class="glass detail-section">
+        <div class="gallery-container">
+          <div class="gallery-main">
+            {% if dest.image_url and dest.image_url.startswith('http') %}<img id="galleryMain" src="{{ dest.image_url }}" alt="{{ dest.name }}">{% else %}<img id="galleryMain" src="{{ url_for('static', filename='images/' + (dest.image_url or 'default_dest.jpg')) }}" alt="{{ dest.name }}">{% endif %}
+          </div>
+          {% if dest.gallery_images %}
+          <div class="gallery-thumbs">
+            <div class="gallery-thumb active" onclick="changeGalleryImage(this, '{{ dest.image_url }}')">
+              {% if dest.image_url and dest.image_url.startswith('http') %}<img src="{{ dest.image_url }}" alt="Main">{% else %}<img src="{{ url_for('static', filename='images/' + (dest.image_url or 'default_dest.jpg')) }}" alt="Main">{% endif %}
+            </div>
+            {% for img in dest.gallery_images.split('|') %}
+            <div class="gallery-thumb" onclick="changeGalleryImage(this, '{{ img.strip() }}')">
+              <img src="{{ img.strip() }}" alt="Gallery {{ loop.index }}">
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="glass detail-section">
+        <h3>📝 About</h3>
+        <p style="line-height:1.8">{{ dest.description }}</p>
+      </div>
+
+      {% if dest.attractions %}
+      <div class="glass detail-section">
+        <h3>🎯 Top Attractions</h3>
+        <div class="flex flex-wrap gap-1">
+          {% for a in dest.attractions.split(',') %}
+          <span class="tag" style="font-size:0.85rem;padding:6px 14px">{{ a.strip() }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if dest.highlights %}
+      <div class="glass detail-section">
+        <h3>✨ Highlights</h3>
+        <div class="flex flex-wrap gap-1">
+          {% for h in dest.highlights.split(',') %}
+          <span class="tag tag-accent" style="font-size:0.85rem;padding:6px 14px">{{ h.strip() }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if dest.how_to_reach %}
+      <div class="glass detail-section">
+        <h3>🚗 How to Reach</h3>
+        <p style="line-height:1.8">{{ dest.how_to_reach }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Auto-Generated Day Plan -->
+      {% if day_plan %}
+      <div class="glass detail-section">
+        <h3>🗓️ Suggested Itinerary ({{ dest.duration_days }} Days)</h3>
+        <p class="text-muted mb-3" style="font-size:0.82rem">🤖 AI-generated day-by-day travel plan</p>
+        <div class="itinerary-timeline">
+          {% for day in day_plan %}
+          <div class="timeline-item">
+            <div class="timeline-marker">{{ day.day }}</div>
+            <div class="timeline-content glass" style="background:rgba(255,255,255,0.03)">
+              <h4>{{ day.title }}</h4>
+              <div class="timeline-activities">
+                {% for activity in day.activities %}
+                <div class="timeline-activity">
+                  <span class="activity-time">{{ activity.time }}</span>
+                  <span class="activity-desc">{{ activity.description }}</span>
+                </div>
+                {% endfor %}
+              </div>
+              {% if day.tip %}
+              <p class="timeline-tip">💡 {{ day.tip }}</p>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Google Maps -->
+      {% if dest.latitude and dest.longitude %}
+      <div class="glass detail-section">
+        <h3>📍 Location Map</h3>
+        <div class="map-container">
+          <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d50000!2d{{ dest.longitude }}!3d{{ dest.latitude }}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sin!4v1"
+            width="100%" height="350" style="border:0;border-radius:12px;" allowfullscreen="" loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+        <div class="flex gap-2 mt-2">
+          <a href="https://www.google.com/maps/search/{{ dest.name }}+{{ dest.state }}" target="_blank" class="btn btn-outline btn-sm">🗺️ Open in Google Maps</a>
+          <a href="https://www.google.com/maps/search/attractions+near+{{ dest.name }}+{{ dest.state }}" target="_blank" class="btn btn-outline btn-sm">📍 Nearby Attractions</a>
+          <a href="https://www.google.com/maps/dir//{{ dest.latitude }},{{ dest.longitude }}" target="_blank" class="btn btn-outline btn-sm">🧭 Get Directions</a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Reviews Section -->
+      <div class="glass detail-section">
+        <h3>💬 Reviews ({{ reviews | length }})</h3>
+        {% if current_user %}
+        <form action="{{ url_for('add_review', dest_id=dest.id) }}" method="POST" class="review-form glass mb-3" style="background:rgba(255,255,255,0.03)">
+          <div class="form-group">
+            <label>Your Rating</label>
+            <div class="star-input">
+              {% for i in range(5, 0, -1) %}
+              <input type="radio" name="rating" id="star{{ i }}" value="{{ i }}" {{ 'checked' if i == 5 }}>
+              <label for="star{{ i }}">⭐</label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="form-group"><label>Comment</label><textarea name="comment" class="form-control" placeholder="Share your experience..." rows="3"></textarea></div>
+          <button type="submit" class="btn btn-primary btn-sm">Submit Review</button>
+        </form>
+        {% endif %}
+        {% for review in reviews %}
+        <div class="review-card glass" style="background:rgba(255,255,255,0.03)">
+          <div class="review-header">
+            <span class="reviewer">{{ review.full_name or review.username }}</span>
+            <span class="date">{{ review.created_at }}</span>
+          </div>
+          <div class="stars mb-1">{% for i in range(review.rating) %}⭐{% endfor %}</div>
+          {% if review.comment %}<p style="color:var(--text-secondary)">{{ review.comment }}</p>{% endif %}
+        </div>
+        {% else %}
+        <p class="text-muted">No reviews yet. Be the first to share your experience!</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Right Column (Sidebar) -->
+    <div>
+      <!-- Weather Widget -->
+      {% if dest.latitude and dest.longitude %}
+      <div class="glass detail-section weather-widget" id="weatherWidget">
+        <h3>🌦️ Current Weather</h3>
+        <div id="weatherContent" class="text-center">
+          <div class="weather-loading">
+            <div class="spinner"></div>
+            <p class="text-muted mt-2" style="font-size:0.85rem">Loading weather...</p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="glass detail-section" style="position:sticky;top:100px">
+        <h3>💰 Budget Breakdown</h3>
+        <div style="font-size:2rem;font-weight:800;color:var(--accent);margin-bottom:16px">₹{{ "{:,}".format(dest.cost_estimate) }}</div>
+        <p class="text-muted mb-3" style="font-size:0.85rem">Estimated for {{ dest.duration_days }} days per person</p>
+        {% if budget %}
+        {% set items = [('Accommodation', budget.accommodation, 35), ('Transport', budget.transport, 25), ('Food', budget.food, 20), ('Activities', budget.activities, 12), ('Miscellaneous', budget.miscellaneous, 8)] %}
+        {% for label, amount, pct in items %}
+        <div class="budget-bar">
+          <span class="label">{{ label }}</span>
+          <div class="bar"><div class="bar-fill" style="width:{{ pct }}%"></div></div>
+          <span class="amount">₹{{ "{:,}".format(amount) }}</span>
+        </div>
+        {% endfor %}
+        <div style="padding:12px 0;margin-top:12px;border-top:1px solid var(--border-glass)">
+          <div class="flex justify-between"><span class="text-muted">Daily Average</span><span style="font-weight:700">₹{{ "{:,}".format(budget.daily_average) }}</span></div>
+        </div>
+        {% endif %}
+
+        <!-- Budget Calculator -->
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border-glass)">
+          <h4 style="font-size:0.95rem;margin-bottom:12px;color:var(--primary-light)">🧮 Custom Budget Calculator</h4>
+          <div class="form-group">
+            <label>Number of Travelers</label>
+            <input type="number" id="numTravelers" class="form-control" value="1" min="1" max="20" onchange="calcBudget()">
+          </div>
+          <div class="form-group">
+            <label>Number of Days</label>
+            <input type="number" id="numDays" class="form-control" value="{{ dest.duration_days }}" min="1" max="30" onchange="calcBudget()">
+          </div>
+          <div id="customBudgetResult" class="glass" style="padding:14px;background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.2);border-radius:10px;margin-top:10px">
+            <div class="flex justify-between mb-1"><span class="text-muted">Total Estimated</span><span id="totalBudget" style="font-weight:700;color:var(--accent);font-size:1.1rem">₹{{ "{:,}".format(dest.cost_estimate) }}</span></div>
+            <div class="flex justify-between"><span class="text-muted" style="font-size:0.8rem">Per Person / Day</span><span id="perPersonDay" style="font-size:0.85rem">₹{{ "{:,}".format((dest.cost_estimate // dest.duration_days) if dest.duration_days else dest.cost_estimate) }}</span></div>
+          </div>
+        </div>
+
+        <div class="flex gap-1 mt-3" style="flex-direction:column">
+          {% if current_user %}
+          <form action="{{ url_for('toggle_wishlist', dest_id=dest.id) }}" method="POST">
+            <button type="submit" class="btn {{ 'btn-danger' if in_wishlist else 'btn-outline' }} btn-block">
+              {{ '❤️ Remove from Wishlist' if in_wishlist else '🤍 Add to Wishlist' }}
+            </button>
+          </form>
+          {% else %}
+          <a href="{{ url_for('login') }}" class="btn btn-outline btn-block">Login to Save</a>
+          {% endif %}
+          <a href="{{ url_for('recommend') }}" class="btn btn-primary btn-block">🎯 Find Similar</a>
+        </div>
+      </div>
+
+      {% if dest.best_time_detail %}
+      <div class="glass detail-section mt-3">
+        <h3>🌤️ Best Time to Visit</h3>
+        <p style="line-height:1.8">{{ dest.best_time_detail }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Similar Destinations -->
+  {% if similar %}
+  <div class="section">
+    <h2 class="section-title">🔗 Similar Destinations</h2>
+    <div class="card-grid">
+      {% for s in similar %}
+      <div class="dest-card">
+        <div class="card-img">{% if s.image_url and s.image_url.startswith('http') %}<img src="{{ s.image_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<img src="{{ url_for('static', filename='images/' + (s.image_url or 'default_dest.jpg')) }}" alt="{{ s.name }}" loading="lazy">{% endif %}</div>
+        <div class="card-body">
+          <h3 class="card-title">{{ s.name }}</h3>
+          <p class="card-location"><i>📍</i> {{ s.state }}</p>
+          <div class="card-footer">
+            <span class="stars">⭐ {{ s.rating }}</span>
+            <span class="price">₹{{ "{:,}".format(s.cost_estimate) }}</span>
+          </div>
+          <a href="{{ url_for('destination_detail', dest_id=s.id) }}" class="btn btn-outline btn-block btn-sm mt-2">View →</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- AI: Users who viewed this also viewed -->
+  {% if also_viewed %}
+  <div class="section">
+    <h2 class="section-title">👥 Travelers Who Viewed {{ dest.name }} Also Visited</h2>
+    <p class="text-muted mb-3" style="font-size:0.85rem;">🤖 AI-powered collaborative filtering recommendation</p>
+    <div class="card-grid">
+      {% for av in also_viewed %}
+      <div class="dest-card">
+        <div class="card-img">
+          {% if av.image_url and av.image_url.startswith('http') %}<img src="{{ av.image_url }}" alt="{{ av.name }}" loading="lazy">{% else %}<img src="{{ url_for('static', filename='images/' + (av.image_url or 'default_dest.jpg')) }}" alt="{{ av.name }}" loading="lazy">{% endif %}
+          <div style="position:absolute;top:10px;left:10px">
+            <span class="tag" style="background:rgba(0,206,209,0.85);color:#fff;padding:3px 8px;font-size:0.72rem;">👥 {{ av.recommended_by }} travelers</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">{{ av.name }}</h3>
+          <p class="card-location"><i>📍</i> {{ av.state }}</p>
+          <div class="card-footer">
+            <span class="stars">⭐ {{ av.rating }}</span>
+            <span class="price">₹{{ "{:,}".format(av.cost_estimate) }}</span>
+          </div>
+          <a href="{{ url_for('destination_detail', dest_id=av.id) }}" class="btn btn-outline btn-block btn-sm mt-2">View →</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Budget Calculator
+const baseCost = {{ dest.cost_estimate }};
+const baseDays = {{ dest.duration_days }};
+function calcBudget() {
+  const travelers = parseInt(document.getElementById('numTravelers').value) || 1;
+  const days = parseInt(document.getElementById('numDays').value) || baseDays;
+  const dailyCost = baseCost / baseDays;
+  const total = Math.round(dailyCost * days * travelers);
+  const ppd = Math.round(dailyCost);
+  document.getElementById('totalBudget').textContent = '₹' + total.toLocaleString('en-IN');
+  document.getElementById('perPersonDay').textContent = '₹' + ppd.toLocaleString('en-IN');
+}
+
+// Gallery
+function changeGalleryImage(thumb, src) {
+  document.getElementById('galleryMain').src = src;
+  document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+  thumb.classList.add('active');
+}
+
+// Weather API (OpenWeather-compatible via Open-Meteo free API)
+{% if dest.latitude and dest.longitude %}
+(function() {
+  const lat = {{ dest.latitude }};
+  const lon = {{ dest.longitude }};
+  fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code&timezone=auto&forecast_days=5`)
+    .then(r => r.json())
+    .then(data => {
+      const current = data.current;
+      const daily = data.daily;
+      const weatherIcons = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',80:'🌧️',81:'🌧️',82:'🌧️',95:'⛈️',96:'⛈️',99:'⛈️'};
+      const weatherNames = {0:'Clear Sky',1:'Mainly Clear',2:'Partly Cloudy',3:'Overcast',45:'Foggy',48:'Rime Fog',51:'Light Drizzle',53:'Drizzle',55:'Heavy Drizzle',61:'Light Rain',63:'Rain',65:'Heavy Rain',71:'Light Snow',73:'Snow',75:'Heavy Snow',80:'Rain Showers',81:'Moderate Showers',82:'Heavy Showers',95:'Thunderstorm',96:'Hail Storm',99:'Heavy Hail'};
+      const icon = weatherIcons[current.weather_code] || '🌡️';
+      const name = weatherNames[current.weather_code] || 'Unknown';
+      let forecastHtml = '';
+      for(let i = 0; i < Math.min(5, daily.time.length); i++) {
+        const d = new Date(daily.time[i]);
+        const dayName = d.toLocaleDateString('en',{weekday:'short'});
+        const fIcon = weatherIcons[daily.weather_code[i]] || '🌡️';
+        forecastHtml += `<div class="forecast-day"><span class="forecast-name">${dayName}</span><span class="forecast-icon">${fIcon}</span><span class="forecast-temp">${Math.round(daily.temperature_2m_max[i])}°/${Math.round(daily.temperature_2m_min[i])}°</span><span class="forecast-rain">${daily.precipitation_probability_max[i]}%💧</span></div>`;
+      }
+      document.getElementById('weatherContent').innerHTML = `
+        <div class="weather-current">
+          <div class="weather-icon-lg">${icon}</div>
+          <div class="weather-temp">${Math.round(current.temperature_2m)}°C</div>
+          <div class="weather-desc">${name}</div>
+        </div>
+        <div class="weather-details">
+          <div class="weather-detail"><span>💧 Humidity</span><span>${current.relative_humidity_2m}%</span></div>
+          <div class="weather-detail"><span>💨 Wind</span><span>${current.wind_speed_10m} km/h</span></div>
+        </div>
+        <div class="weather-forecast"><h4 style="font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">5-Day Forecast</h4>${forecastHtml}</div>`;
+    })
+    .catch(() => {
+      document.getElementById('weatherContent').innerHTML = '<p class="text-muted" style="font-size:0.85rem">Weather data unavailable</p>';
+    });
+})();
+{% endif %}
+</script>
+{% endblock %}

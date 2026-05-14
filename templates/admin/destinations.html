@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Manage Destinations{% endblock %}
+{% block content %}
+<div class="page-header"><h1>🏞️ Manage Destinations</h1></div>
+<div class="container">
+  <div class="flex justify-between items-center mb-3">
+    <p class="text-muted">{{ destinations | length }} destinations</p>
+    <a href="{{ url_for('admin_add_destination') }}" class="btn btn-accent">➕ Add New</a>
+  </div>
+  <div class="glass table-container">
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>State</th><th>Type</th><th>Budget</th><th>Rating</th><th>Cost</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for d in destinations %}
+        <tr>
+          <td><strong>{{ d.name }}</strong></td>
+          <td>{{ d.state }}</td>
+          <td><span class="tag">{{ d.travel_type | replace('_',' ') | title }}</span></td>
+          <td><span class="tag tag-{{ d.budget_category }}">{{ d.budget_category | title }}</span></td>
+          <td>⭐ {{ d.rating }}</td>
+          <td>₹{{ "{:,}".format(d.cost_estimate) }}</td>
+          <td class="flex gap-1">
+            <a href="{{ url_for('admin_edit_destination', dest_id=d.id) }}" class="btn btn-outline btn-sm">Edit</a>
+            <form action="{{ url_for('admin_delete_destination', dest_id=d.id) }}" method="POST" onsubmit="return confirm('Delete {{ d.name }}?')">
+              <button class="btn btn-danger btn-sm">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

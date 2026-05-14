@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}My Itinerary{% endblock %}
+{% block content %}
+<div class="page-header"><h1>📋 My Travel Itinerary</h1><p>Plan and manage your upcoming trips</p></div>
+<div class="container">
+  <!-- Add Trip Form -->
+  <div class="glass detail-section mb-4">
+    <h3>➕ Plan a New Trip</h3>
+    <form action="{{ url_for('add_itinerary') }}" method="POST">
+      <div class="form-row">
+        <div class="form-group"><label>Trip Title</label><input type="text" name="title" class="form-control" placeholder="e.g. Weekend in Goa" required></div>
+        <div class="form-group"><label>Destination</label>
+          <select name="destination_id" class="form-control">
+            <option value="">Select destination (optional)</option>
+            {% for d in destinations %}<option value="{{ d.id }}">{{ d.name }} — {{ d.state }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Start Date</label><input type="date" name="start_date" class="form-control"></div>
+        <div class="form-group"><label>End Date</label><input type="date" name="end_date" class="form-control"></div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea name="notes" class="form-control" rows="3" placeholder="Add any notes or plans..."></textarea></div>
+      <button type="submit" class="btn btn-primary">Add to Itinerary</button>
+    </form>
+  </div>
+
+  <!-- Trip List -->
+  {% if trips %}
+  <h3 class="mb-3">Your Trips ({{ trips | length }})</h3>
+  {% for trip in trips %}
+  <div class="trip-card glass">
+    <div style="font-size:2rem">✈️</div>
+    <div class="trip-info">
+      <h4>{{ trip.title }}</h4>
+      {% if trip.dest_name %}<p class="text-muted">📍 {{ trip.dest_name }}{% if trip.state %}, {{ trip.state }}{% endif %}</p>{% endif %}
+      {% if trip.start_date %}<p class="trip-dates">📅 {{ trip.start_date }}{% if trip.end_date %} → {{ trip.end_date }}{% endif %}</p>{% endif %}
+      {% if trip.notes %}<p class="text-muted mt-1" style="font-size:0.85rem">{{ trip.notes }}</p>{% endif %}
+    </div>
+    <span class="trip-status {{ trip.status }}">{{ trip.status | title }}</span>
+    <form action="{{ url_for('delete_itinerary', trip_id=trip.id) }}" method="POST">
+      <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+    </form>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="empty-state">
+    <div class="icon">📋</div>
+    <h3>No trips planned yet</h3>
+    <p>Start planning your next adventure above!</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

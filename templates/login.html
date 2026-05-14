@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="auth-container">
+  <div class="glass auth-card">
+    <div class="text-center">
+      <div style="font-size:3rem;margin-bottom:12px">🔐</div>
+      <h2>Welcome Back</h2>
+      <p class="subtitle">Login to access personalized recommendations</p>
+    </div>
+    <form method="POST">
+      <div class="form-group"><label>Username</label><input type="text" name="username" class="form-control" placeholder="Enter username" required></div>
+      <div class="form-group"><label>Password</label><input type="password" name="password" class="form-control" placeholder="Enter password" required></div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Login →</button>
+    </form>
+    <p class="text-center mt-3" style="font-size:0.9rem;color:var(--text-secondary)">Don't have an account? <a href="{{ url_for('register') }}">Sign up</a></p>
+
+    <!-- Demo Credentials Box -->
+    <div style="margin-top:24px;padding:16px 20px;background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.25);border-radius:12px;">
+      <p style="font-size:0.85rem;font-weight:600;color:var(--accent);margin-bottom:10px;text-align:center;">📋 Demo Login Credentials</p>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <!-- Admin -->
+        <div style="flex:1;min-width:140px;background:rgba(255,255,255,0.04);padding:10px 14px;border-radius:8px;cursor:pointer;" onclick="document.querySelector('[name=username]').value='admin';document.querySelector('[name=password]').value='admin123';" title="Click to auto-fill">
+          <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:4px;">🛠️ Admin</p>
+          <p style="font-size:0.82rem;color:var(--text-primary);margin:0;"><strong>User:</strong> admin</p>
+          <p style="font-size:0.82rem;color:var(--text-primary);margin:0;"><strong>Pass:</strong> admin123</p>
+        </div>
+        <!-- User -->
+        <div style="flex:1;min-width:140px;background:rgba(255,255,255,0.04);padding:10px 14px;border-radius:8px;cursor:pointer;" onclick="document.querySelector('[name=username]').value='testuser2';document.querySelector('[name=password]').value='test1234';" title="Click to auto-fill">
+          <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--secondary);margin-bottom:4px;">👤 User</p>
+          <p style="font-size:0.82rem;color:var(--text-primary);margin:0;"><strong>User:</strong> testuser2</p>
+          <p style="font-size:0.82rem;color:var(--text-primary);margin:0;"><strong>Pass:</strong> test1234</p>
+        </div>
+      </div>
+      <p style="font-size:0.7rem;color:var(--text-secondary);text-align:center;margin-top:8px;margin-bottom:0;">Click a card to auto-fill credentials</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

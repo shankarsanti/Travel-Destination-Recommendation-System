@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Messages{% endblock %}
+{% block content %}
+<div class="page-header"><h1>📧 Contact Messages</h1></div>
+<div class="container">
+  {% if messages %}
+  {% for msg in messages %}
+  <div class="glass detail-section mb-3" style="{{ '' if msg.is_read else 'border-left:3px solid var(--accent)' }}">
+    <div class="flex justify-between items-center mb-2">
+      <div><strong>{{ msg.name }}</strong> <span class="text-muted">— {{ msg.email }}</span></div>
+      <span class="text-muted" style="font-size:0.8rem">{{ msg.created_at }}</span>
+    </div>
+    {% if msg.subject %}<p style="font-weight:600;margin-bottom:6px">{{ msg.subject }}</p>{% endif %}
+    <p class="text-muted">{{ msg.message }}</p>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="empty-state"><div class="icon">📭</div><h3>No messages yet</h3></div>
+  {% endif %}
+</div>
+{% endblock %}

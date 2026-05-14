@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<div class="page-header"><h1>👤 My Profile</h1></div>
+<div class="container">
+  <!-- Profile Header -->
+  <div class="glass profile-header">
+    <div class="profile-avatar">{{ user.username[0] | upper }}</div>
+    <div class="profile-info">
+      <h2>{{ user.full_name or user.username }}</h2>
+      <p>{{ user.email }}</p>
+      <div class="profile-stats">
+        <div><span class="stat-value">{{ reviews | length }}</span><br><span class="stat-label">Reviews</span></div>
+        <div><span class="stat-value">{{ wishlist_count }}</span><br><span class="stat-label">Wishlist</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <!-- Edit Profile -->
+    <div>
+      <div class="glass detail-section">
+        <h3>✏️ Edit Profile</h3>
+        <form action="{{ url_for('update_profile') }}" method="POST">
+          <div class="form-group"><label>Full Name</label><input type="text" name="full_name" class="form-control" value="{{ user.full_name or '' }}"></div>
+          <div class="form-group"><label>Email</label><input type="email" name="email" class="form-control" value="{{ user.email }}"></div>
+          <div class="form-group"><label>Phone</label><input type="text" name="phone" class="form-control" value="{{ user.phone or '' }}"></div>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+      </div>
+
+      <!-- My Reviews -->
+      <div class="glass detail-section mt-3">
+        <h3>💬 My Reviews</h3>
+        {% for review in reviews %}
+        <div class="review-card glass mb-2" style="background:rgba(255,255,255,0.03)">
+          <div class="review-header">
+            <span class="reviewer">{{ review.dest_name }}</span>
+            <span class="stars">{% for i in range(review.rating) %}⭐{% endfor %}</span>
+          </div>
+          {% if review.comment %}<p class="text-muted">{{ review.comment }}</p>{% endif %}
+        </div>
+        {% else %}
+        <p class="text-muted">No reviews yet</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Preferences -->
+    <div>
+      <div class="glass detail-section">
+        <h3>🎯 My Preferences</h3>
+        {% if prefs %}
+        <div class="mb-2"><span class="text-muted">Travel Type:</span> <span class="tag">{{ (prefs.preferred_type or 'Any') | replace('_',' ') | title }}</span></div>
+        <div class="mb-2"><span class="text-muted">Budget:</span> <span class="tag tag-accent">{{ (prefs.preferred_budget or 'Any') | title }}</span></div>
+        <div class="mb-2"><span class="text-muted">Season:</span> <span class="tag">{{ (prefs.preferred_season or 'Any') | title }}</span></div>
+        {% else %}
+        <p class="text-muted">No preferences saved yet</p>
+        {% endif %}
+        <a href="{{ url_for('recommend') }}" class="btn btn-primary btn-block mt-3">Update Preferences</a>
+      </div>
+      <div class="glass detail-section mt-3">
+        <h3>🔗 Quick Links</h3>
+        <a href="{{ url_for('wishlist') }}" class="btn btn-outline btn-block mb-2">❤️ My Wishlist ({{ wishlist_count }})</a>
+        <a href="{{ url_for('itinerary') }}" class="btn btn-outline btn-block mb-2">📋 My Itineraries</a>
+        <a href="{{ url_for('explore') }}" class="btn btn-outline btn-block">🗺️ Explore Destinations</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

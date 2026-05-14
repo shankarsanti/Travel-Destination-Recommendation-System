@@ -1,0 +1,24 @@
+<nav class="navbar">
+  <div class="container">
+    <a href="{{ url_for('index') }}" class="nav-brand">🌍 <span>Travel Destination</span></a>
+    <button class="nav-toggle" aria-label="Menu">☰</button>
+    <ul class="nav-links">
+      <li><a href="{{ url_for('index') }}" class="{{ 'active' if request.endpoint == 'index' }}">Home</a></li>
+      <li><a href="{{ url_for('explore') }}" class="{{ 'active' if request.endpoint == 'explore' }}">Explore</a></li>
+      <li><a href="{{ url_for('recommend') }}" class="{{ 'active' if request.endpoint == 'recommend' }}">Recommend</a></li>
+      {% if current_user %}
+        <li><a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' }}">Dashboard</a></li>
+        <li><a href="{{ url_for('wishlist') }}" class="{{ 'active' if request.endpoint == 'wishlist' }}">❤️</a></li>
+        <li><a href="{{ url_for('itinerary') }}" class="{{ 'active' if request.endpoint == 'itinerary' }}">📋</a></li>
+        {% if session.get('is_admin') %}
+        <li><a href="{{ url_for('admin_dashboard') }}" class="btn btn-sm btn-accent">Admin</a></li>
+        {% endif %}
+        <li><a href="{{ url_for('profile') }}" class="{{ 'active' if request.endpoint == 'profile' }}">👤 {{ session.get('username') }}</a></li>
+        <li><a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline">Logout</a></li>
+      {% else %}
+        <li><a href="{{ url_for('login') }}" class="btn btn-sm btn-outline">Login</a></li>
+        <li><a href="{{ url_for('register') }}" class="btn btn-sm btn-primary">Sign Up</a></li>
+      {% endif %}
+    </ul>
+  </div>
+</nav>
